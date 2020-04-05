@@ -4,6 +4,9 @@
 import numpy as np
 import fractions
 import decimal
+import argparse
+
+
 def generate_equation(erange=10):
     """
 
@@ -142,9 +145,13 @@ def proofreading(qf='Exercises.txt', af='Answers.txt'):
     """
     q_list, a_list = [list(), list()]
     for lt, name in zip([q_list, a_list], [qf, af]):
-        with open(name) as f:
-            for line in f.readlines():
-                lt.append(line.strip())
+        try:
+            with open(name) as f:
+                for line in f.readlines():
+                    lt.append(line.strip())
+        except FileNotFoundError:
+            print('error: No such file or directory')
+
     ita = min(len(q_list), len(a_list))
     proof = {'Correct':list(), 'Wrong':list()}
     for it in range(ita):
@@ -152,7 +159,9 @@ def proofreading(qf='Exercises.txt', af='Answers.txt'):
             proof['Correct'].append(it+1)
         else:
             proof['Wrong'].append(it+1)
-
+    print('proofreading:\n')
+    print('Correct\t: {}'.format(len(proof['Correct'])))
+    print('Wrong\t: {}'.format(len(proof['Wrong'])))
     file_str = 'Correct: {} {}\nWrong: {} {}'.format(
         len(proof['Correct']), str(proof['Correct']),
         len(proof['Wrong']), str(proof['Wrong']))
@@ -160,8 +169,34 @@ def proofreading(qf='Exercises.txt', af='Answers.txt'):
         f.write(file_str)
         f.close()
 
+def main(enum, erange, e_file, a_file, p):
+    """
+    main function
+    :param enum:
+    :param erange:
+    :param e_file:
+    :param a_file:
+    :param p:
+    :return:
+    """
+    if p is not None:
+        proofreading()
+    elif len(e_file) and len(a_file):
+        proofreading(qf=e_file, af=a_file)
+    else:
+        generate_to_file(q_num=enum, erange=erange)
+        print('Generate quations successfully.')
+
+parser = argparse.ArgumentParser(description='Test for argparse')
+parser.add_argument('--num', '-n', help='num 属性，非必要参数，但是有默认值', default=10, type=int)
+parser.add_argument('--range', '-r', help='range 属性，非必要参数，但是有默认值', default=10, type=int)
+parser.add_argument('--e_file', '-e', help='e_file 属性，非必要参数，但是有默认值', default='')
+parser.add_argument('--a_file', '-a', help='a_file 属性，非必要参数，但是有默认值', default='')
+parser.add_argument('--proof', '-p', help='proof 属性，非必要参数，无默认值')
+args = parser.parse_args()
 
 if __name__ == '__main__':
-    generate_to_file()
-    proofreading()
-
+    try:
+        main(args.num, args.range, args.e_file, args.a_file, args.proof)
+    except Exception as e:
+        print('error: {}'.format(e))
